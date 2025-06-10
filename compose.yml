@@ -1,14 +1,27 @@
 services:
-  mongo:
-    image: mongo:latest
-    ports:
-      - '27017:27017'
-    command:
-      - --storageEngine=wiredTiger
+  postgres:
+    restart: always
+    image: postgres:latest
     volumes:
-      - data:/data/db
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=12345
+      - POSTGRES_HOST_AUTH_METHOD=trust
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    environment:
+      - DATABASE_URL=postgresql://postgres:12345@postgres:5432/
+      - SECRET=your_secret_key
+    depends_on:
+      - postgres
     logging:
       driver: none
 
 volumes:
-  data:
+  pgdata:
